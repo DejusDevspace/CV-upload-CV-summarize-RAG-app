@@ -1,5 +1,5 @@
 from langchain_google_genai import GoogleGenerativeAI
-from langchain.document_loaders import PyPDFLoader, Docx2txtLoader
+from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains.summarize import load_summarize_chain
@@ -45,10 +45,28 @@ def process_docx(docx_file: str) -> List:
     text = ''
     docx_loader = Docx2txtLoader(docx_file)
 
-    # Load Documents and split into chunks
-    text = docx_loader.load_and_split()
+    # Load Documents
+    docs = docx_loader.load()
 
-    return text
+    for document in docs:
+        text += document.page_content
+    
+    # Replace tab spaces with single spaces (if any)
+    text = text.replace('\t', ' ')
+
+      # Splitting the document into chunks of texts
+    text_splitter = CharacterTextSplitter(
+        separator='\n',
+        chunk_size=1000,
+        chunk_overlap=30,
+        length_function=len,
+        is_separator_regex=False,
+    )
+
+    # Create documents from list of texts
+    texts = text_splitter.create_documents([text])
+
+    return texts
 
 
 def load_file(file: io.IOBase, suffix: str) -> str:
@@ -61,7 +79,7 @@ def load_file(file: io.IOBase, suffix: str) -> str:
 def stream_data(text: str):
     for word in text.split(' '):
         yield word + ' '
-        time.sleep(0.07)
+        time.sleep(0.1)
 
 
 def main():
@@ -115,18 +133,23 @@ def main():
                    "------------\n"
                    "{text}\n"
                    "------------\n"
-                   "Given the new context, refine the original summary into the following sections:"
-                   "Name: \n"
-                   "Email: \n"
-                   "Key Skills: \n"
-                   "Last Company: \n"
-                   "Experience Summary: \n"
+                   "Given the new context, refine the original summary into the following sections:\n"
+                   "Note: Do NOT provide a title for the summary, just start from the parameters below:\n"
+                   "Name: \n\n"
+                   "Email: \n\n"
+                   "Key Skills: \n\n"
+                   "Last Company: \n\n"
+                   "Experience Summary: \n\n"
 
+                   "Each parameter above should be printed in bold and larger in font than the details\n"
                    "If the provided context is not useful, return the original summary\n"
+                   "The Last Company parameter refers to the EARLIEST work experience company by date (most recent date)"
                    "If any of the sections are not retrievable from the context, say it is not available in the document\n"
                    "For example, if Last Company is not available, you would write in the Last Company section:\n"
                    "Last Company: Not avaialalbe\n"
                )
+            
+            # Refine chain prompt
             refine_prompt = PromptTemplate.from_template(refine_template)
 
             # Summarize chain
@@ -140,16 +163,15 @@ def main():
                 output_key='output_text',
             )
 
-            result = chain.invoke({"input_documents": texts}, return_only_outputs=True)
-            
             # Display loading summary while summary is being generated
-            while result is None:
-                st.write('Loading summary...')
-
-            summary = result['output_text']
+            with st.spinner('Loading summary...'):
+                result = chain.invoke({"input_documents": texts}, return_only_outputs=True)
+            
+            # Resume summary the chain output key
+            summary = result['output_text']            
 
             st.subheader('Resume Summary:', divider='grey')
-            st.text_area('Summary:', st.write_stream(stream_data(summary)))
+            st.write_stream(stream_data(summary))
 
 
 if __name__ == '__main__':
