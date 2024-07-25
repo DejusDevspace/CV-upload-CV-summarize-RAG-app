@@ -78,7 +78,7 @@ def main():
     # Summarize button
     if st.button('Summarize'):
         if uploaded_file is not None:
-            file_type = uploaded_file.name.split('.')[-1]  #(docx/pdf)
+            file_type = uploaded_file.name.split('.')[-1]  # (docx/pdf)
 
             st.subheader('File Details:', divider='grey')
             st.write(f'File Name: {uploaded_file.name}')
@@ -131,7 +131,7 @@ def main():
                 "If the provided context is not useful, return the original summary\n"
                 "If any of the sections are not available from the context, say it is not available in the document\n"
                 "For example, if Last Company is not available, you would write in the Last Company section:\n"
-                "Last Company: Not avaialalbe\n"
+                "Last Company: Not available\n"
             )
 
             # Refine chain prompt
