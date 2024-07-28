@@ -1,11 +1,11 @@
 # Resume Summary Generator 
 This repository contains a simple RAG application with a basic streamlit interface that allows a user to upload
-a resume, and get a summary of the uploaded resume.
+a resume, and get a summary of the uploaded resume. It accepts pdf and docx file formats.
 
 It uses Google's gemini as the LLM for the RAG application.
 
 ## Installation
-To run the app locally, 
+To run the app locally,
 1. Clone the repository:
 
     ```sh
