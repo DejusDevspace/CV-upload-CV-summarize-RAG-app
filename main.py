@@ -132,9 +132,6 @@ def main():
                 "If any of the sections are not available from the context, say it is not available in the document\n"
                 "For example, if Last Company is not available, you would write in the Last Company section:\n"
                 "Last Company: Not available\n"
-                "Finally, if there are additional sections in the provided context, add them to the summary. For example\n"
-                "If there is a section for projects, you would add a section for it in the summary:\n"
-                "Projects: \n\n"
             )
 
             # Refine chain prompt
